@@ -21,10 +21,8 @@ void process_instruction()
     printf("%u\n", CURRENT_STATE.PC);
     printf("%x\n", mem_read_32(CURRENT_STATE.PC));
     printf("\n\n");
-    printf("OPCODE: ");
-    printf("%u\n", getOPCODE(mem_read_32(CURRENT_STATE.PC)));
-    printf("RS: ");
-    printf("%u\n", getRS(mem_read_32(CURRENT_STATE.PC)));
+    printf("TYPE: ");
+    printf("%u\n", getType(getOPCODE(mem_read_32(CURRENT_STATE.PC))));
     printf("----------------------------------\n");
 
 
