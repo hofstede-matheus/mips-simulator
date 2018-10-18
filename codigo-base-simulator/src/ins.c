@@ -26,3 +26,23 @@ void SYSCALL(){
     RUN_BIT = 0;
 }
 
+int getType(uint32_t num){
+    // 0 = tipo J
+    // se OPCODE == 000010 ou 000011
+    if(num == 2 || num == 3) return 0;
+    // 1 = tipo I
+    else if(getI(num)) return 1;
+    // 2 = tipo R (ou seja, todas as outras)
+    else return 2;
+    return 0;
+}
+
+int getI(int code){
+    // checa se o opcode recebido é um do tipo I
+    int opcodes[] = {4, 5, 8, 9, 12, 13, 15, 35, 42};
+    int i;
+    for(i = 0; i < 9; i++){
+        if(code == opcodes[i]) return 1;
+    }
+    return 0;
+}
