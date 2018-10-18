@@ -23,7 +23,9 @@ void next_instruction(){
 }
 
 void SYSCALL(){
-    RUN_BIT = 0;
+    if(mem_read_32(CURRENT_STATE.PC) == 10){
+        RUN_BIT = 0;
+    }
 }
 
 int getType(uint32_t num){
