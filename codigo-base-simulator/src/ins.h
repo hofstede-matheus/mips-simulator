@@ -10,6 +10,8 @@ uint32_t getOPCODE(uint32_t num);
 uint32_t getRS(uint32_t num);
 uint32_t getRT(uint32_t num);
 uint32_t getRD(uint32_t num);
+uint32_t getSA(uint32_t num);
+uint32_t getFUNC(uint32_t num);
 
 
 void SYSCALL();

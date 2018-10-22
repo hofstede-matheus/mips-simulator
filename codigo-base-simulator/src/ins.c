@@ -66,6 +66,18 @@ uint32_t getRD(uint32_t num){
     num = num >> (32 - 5);
     return num;
 }
+uint32_t getSA(uint32_t num){
+    num = num >> (32 - 26);
+    num = num << (32 - 5);
+    num = num >> (32 - 5);
+    return num;
+}
+uint32_t getFUNC(uint32_t num){
+    //num = num >> (32 - 26);
+    num = num << (32 - 6);
+    num = num >> (32 - 6);
+    return num;
+}
 
 
 

@@ -26,13 +26,17 @@ void process_instruction()
     printf("OPCODE: ");
     printf("%u\n", getOPCODE(mem_read_32(CURRENT_STATE.PC)));
     if(getType(getOPCODE(mem_read_32(CURRENT_STATE.PC))) == 2){
-        printf("é tipo S: \n");
+        printf("é tipo R: \n");
         printf("RS: ");
         printf("%u\n", getRS(mem_read_32(CURRENT_STATE.PC)));
         printf("RT: ");
         printf("%u\n", getRT(mem_read_32(CURRENT_STATE.PC)));
         printf("RD: ");
         printf("%u\n", getRD(mem_read_32(CURRENT_STATE.PC)));
+        printf("SA: ");
+        printf("%u\n", getSA(mem_read_32(CURRENT_STATE.PC)));
+        printf("FUNC: ");
+        printf("%u\n", getFUNC(mem_read_32(CURRENT_STATE.PC)));
     }
     printf("----------------------------------\n");
 
