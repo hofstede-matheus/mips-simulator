@@ -73,11 +73,21 @@ uint32_t getSA(uint32_t num){
     return num;
 }
 uint32_t getFUNC(uint32_t num){
-    //num = num >> (32 - 26);
     num = num << (32 - 6);
     num = num >> (32 - 6);
     return num;
 }
+
+/* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
+/*                      CAMPOS DO TIPO J                        */
+/* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
+
+uint32_t getADDRESS(uint32_t num){
+    num = num << (32 - 26);
+    num = num >> (32 - 26);
+    return num;
+}
+
 
 
 

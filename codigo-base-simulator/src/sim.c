@@ -38,6 +38,14 @@ void process_instruction()
         printf("FUNC: ");
         printf("%u\n", getFUNC(mem_read_32(CURRENT_STATE.PC)));
     }
+    if(getType(getOPCODE(mem_read_32(CURRENT_STATE.PC))) == 0){
+        printf("é tipo J: \n");
+        printf("ADDRESS: ");
+        printf("%u\n", getADDRESS(mem_read_32(CURRENT_STATE.PC)));
+        printf("%x\n", mem_read_32(getADDRESS(mem_read_32(CURRENT_STATE.PC))));
+        printf("%x\n", mem_read_32((uint32_t) 1048578 ));
+
+    }
     printf("----------------------------------\n");
 
 
