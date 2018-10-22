@@ -23,7 +23,7 @@ void next_instruction(){
 }
 
 void SYSCALL(){
-    if(mem_read_32(CURRENT_STATE.PC) == 10){
+    if(mem_read_32(CURRENT_STATE.REGS[2]) == 10){
         RUN_BIT = 0;
     }
 }
