@@ -23,6 +23,29 @@ void process_instruction()
     printf("\n\n");
     printf("TYPE: ");
     printf("%u\n", getType(getOPCODE(mem_read_32(CURRENT_STATE.PC))));
+    printf("OPCODE: ");
+    printf("%u\n", getOPCODE(mem_read_32(CURRENT_STATE.PC)));
+    if(getType(getOPCODE(mem_read_32(CURRENT_STATE.PC))) == 2){
+        printf("é tipo R: \n");
+        printf("RS: ");
+        printf("%u\n", getRS(mem_read_32(CURRENT_STATE.PC)));
+        printf("RT: ");
+        printf("%u\n", getRT(mem_read_32(CURRENT_STATE.PC)));
+        printf("RD: ");
+        printf("%u\n", getRD(mem_read_32(CURRENT_STATE.PC)));
+        printf("SA: ");
+        printf("%u\n", getSA(mem_read_32(CURRENT_STATE.PC)));
+        printf("FUNC: ");
+        printf("%u\n", getFUNC(mem_read_32(CURRENT_STATE.PC)));
+    }
+    if(getType(getOPCODE(mem_read_32(CURRENT_STATE.PC))) == 0){
+        printf("é tipo J: \n");
+        printf("ADDRESS: ");
+        printf("%u\n", getADDRESS(mem_read_32(CURRENT_STATE.PC)));
+        printf("%x\n", mem_read_32(getADDRESS(mem_read_32(CURRENT_STATE.PC))));
+        printf("%x\n", mem_read_32((uint32_t) 1048578 ));
+
+    }
     printf("----------------------------------\n");
 
 
