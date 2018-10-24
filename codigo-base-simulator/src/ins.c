@@ -30,6 +30,10 @@ int getI(int code){
     return 0;
 }
 
+/* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
+/*                         COMUM À TODOS                        */
+/* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
+
 // retorna o opcode da instrução
 uint32_t getOPCODE(uint32_t num){
     num = num >> (32 - 6);
@@ -85,6 +89,18 @@ uint32_t getFUNC(uint32_t num){
 uint32_t getADDRESS(uint32_t num){
     num = num << (32 - 26);
     num = num >> (32 - 26);
+    return num;
+}
+
+/* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
+/*                      CAMPOS DO TIPO I                        */
+/* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
+
+//  GETRS E GETRT JÁ EXISTEM
+
+uint32_t getIMMEDIATE(uint32_t num){
+    num = num << (32 - 16);
+    num = num >> (32 - 16);
     return num;
 }
 

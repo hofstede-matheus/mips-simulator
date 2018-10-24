@@ -16,6 +16,8 @@ uint32_t getFUNC(uint32_t num);
 
 uint32_t getADDRESS(uint32_t num);
 
+uint32_t getIMMEDIATE(uint32_t num);
+
 
 void SYSCALL();
 
