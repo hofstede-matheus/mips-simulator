@@ -46,6 +46,17 @@ void process_instruction()
         printf("%x\n", mem_read_32((uint32_t) 1048578 ));
 
     }
+    if(getType(getOPCODE(mem_read_32(CURRENT_STATE.PC))) == 1){
+        printf("é tipo I: \n");
+        printf("RS: ");
+        printf("%u\n", getRS(mem_read_32(CURRENT_STATE.PC)));
+        printf("RT: ");
+        printf("%u\n", getRT(mem_read_32(CURRENT_STATE.PC)));
+        printf("IMMEDIATE: ");
+        printf("%u\n", getIMMEDIATE(mem_read_32(CURRENT_STATE.PC)));
+        printf("%x\n", mem_read_32(getIMMEDIATE(mem_read_32(CURRENT_STATE.PC))));
+
+    }
     printf("----------------------------------\n");
 
 
