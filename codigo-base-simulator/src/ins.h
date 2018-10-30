@@ -4,6 +4,8 @@
 
 
 void next_instruction();
+
+void select_instruction(uint32_t hex);
 int getType(uint32_t num);
 int getI(int code);
 uint32_t getOPCODE(uint32_t num);
@@ -20,6 +22,11 @@ uint32_t getIMMEDIATE(uint32_t num);
 
 
 void SYSCALL();
+
+void j(uint32_t hex);
+void jal(uint32_t hex);
+
+void add(uint32_t hex);
 
 
 #endif
