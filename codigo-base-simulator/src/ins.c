@@ -11,11 +11,14 @@ void next_instruction(){
 
 // escolhe a instrução apropriada
 void select_instruction(uint32_t hex){
-    uint32_t type, opcode;
+    uint32_t type, opcode, func;
+    func = getFUNC(hex);
     opcode = getOPCODE(hex);
+
     type = getType(opcode);
 
     if(type == 0){
+        printf("!!!!!TIPO J!!!!!!\n");
         switch(opcode){
             case 2:
                 j(hex);
@@ -25,9 +28,56 @@ void select_instruction(uint32_t hex){
                 break;
         }
     }else if(type == 1){
-
+        printf("!!!!!TIPO i!!!!!!\n");
+        switch(opcode){
+            case 8:
+                addi(hex);
+                break;
+            case 9:
+                addiu(hex);
+                break;
+        }
+        
     }else{
-
+        printf("!!!!!TIPO R!!!!!!\n");        
+        switch(func){
+            case 12:
+                SYSCALL();
+                break;
+            case 24:
+                mult(hex);
+                break;
+            case 32:
+                add(hex);
+                break;
+            case 33:
+                addu(hex);
+                break;
+            case 34:
+                sub(hex);
+                break;
+            case 35:
+                subu(hex);
+                break;
+            case 36:
+                and(hex);
+                break;
+            case 37:
+                or(hex);
+                break;
+            case 38:
+                xor(hex);
+                break;
+            case 39:
+                nor(hex);
+                break;
+            case 42:
+                slt(hex);
+                break;
+            case 43:
+                sltu(hex);
+                break;
+        }
     }
 }
 
@@ -134,35 +184,35 @@ uint32_t getIMMEDIATE(uint32_t num){
 /*              IMPLEMENTAÇÃO DAS INSTRUÇÕES                    */
 /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
 
+
 // implementa syscall
 void SYSCALL(){
     if(mem_read_32(CURRENT_STATE.REGS[2]) == 10){
+        printf("!!!!!MASSA!!!!!!\n");
         RUN_BIT = 0;
     }
 }
-// TIPO J
+/***************************************************************/
+/*                                                             */
+/*                     Instruções Tipo-J                       */
+/*                         op|target                           */
+/*                                                             */
+/***************************************************************/
 
 // J
 void j(uint32_t hex){
     uint32_t address;
     address = getADDRESS(hex);
+    uint32_t msb_PC = CURRENT_STATE.PC;
+    msb_PC >> 28;
+    msb_PC << 28;
+    address << 2;
+    uint32_t t = address | msb_PC;
+    t+= 4;
+    printf("!!!%x\n", t);
+    printf("%x\n", mem_read_32(t));
+    //NEXT_STATE.PC = t;
 
-    uint32_t newPC;
-    uint32_t hobPC;
-    newPC = CURRENT_STATE.PC /* + 4*/;
-    printf("%x\n", newPC);
-    printf("%x\n", newPC);
-    newPC += (address << 2);
-    printf("%x\n", newPC);
-    hobPC = CURRENT_STATE.PC;
-
-    hobPC = hobPC >> 28;
-    hobPC = hobPC << 28;
-
-    newPC = hobPC + newPC;
-
-
-    printf("%x\n", mem_read_32(newPC));
 }
 // JAL
 void jal(uint32_t hex){
@@ -170,11 +220,314 @@ void jal(uint32_t hex){
     address = getADDRESS(hex);
 }
 
+/***************************************************************/
+/*                                                             */
+/*                     Instruções Tipo-I                       */
+/*                     op|rs|rt|immediate                      */
+/*                                                             */
+/***************************************************************/
 
-// TIPO R
+// ADDI
+
+void addi(uint32_t num){
+    uint32_t imm, rs, rt; // numero do registrador
+    rs = getRS(num);
+    rt = getRT(num);
+    imm = getIMMEDIATE(num);
+    
+
+    // ate agora eu tenho o numero do registrador
+    // vamos pegar os valores desses registradores 
+    //rd = CURRENT_STATE.REGS[rd];
+    rs = CURRENT_STATE.REGS[rs];
+    //rt = CURRENT_STATE.REGS[rt];
+    // agora tenho os valores de fato
+    if((rs + imm) > 2147483647){ // checa se vai dar overflow e joga a exception
+        printf("OVERFLOW EXCEPTION");
+    }else{
+        NEXT_STATE.REGS[rt] = rs + imm;
+    }
+}
+// ADDIU
+void addiu(uint32_t num){
+    uint32_t imm, rs, rt; // numero do registrador
+    rs = getRS(num);
+    rt = getRT(num);
+    imm = getIMMEDIATE(num);
+
+    //rd = CURRENT_STATE.REGS[rd];
+    rs = CURRENT_STATE.REGS[rs];
+    //rt = CURRENT_STATE.REGS[rt];
+    NEXT_STATE.REGS[rt] = rs + imm;
+}
+
+
+
+/***************************************************************/
+/*                                                             */
+/*                     Instruções Tipo-R                       */
+/*                  op|rs|rt|rd|shamt|funct                    */
+/*                                                             */
+/***************************************************************/
 
 // ADD
-
 void add(uint32_t num){
-    int rd, rs, rt;
+    uint32_t rd, rs, rt; // numero do registrador
+    rd = getRD(num);
+    rs = getRS(num);
+    rt = getRT(num);
+
+    // ate agora eu tenho o numero do registrador
+    // vamos pegar os valores desses registradores 
+    //rd = CURRENT_STATE.REGS[rd];
+    rs = CURRENT_STATE.REGS[rs];
+    rt = CURRENT_STATE.REGS[rt];
+    // agora tenho os valores de fato
+    if((rs + rt) > 2147483647){ // checa se vai dar overflow e joga a exception
+        printf("OVERFLOW EXCEPTION");
+    }else{
+        NEXT_STATE.REGS[rd] = rs + rt;
+    }
+}
+// ADDU
+void addu(uint32_t num){
+    uint32_t rd, rs, rt; // numero do registrador
+    rd = getRD(num);
+    rs = getRS(num);
+    rt = getRT(num);
+
+    // ate agora eu tenho o numero do registrador
+    // vamos pegar os valores desses registradores 
+    //rd = CURRENT_STATE.REGS[rd];
+    rs = CURRENT_STATE.REGS[rs];
+    rt = CURRENT_STATE.REGS[rt];
+    // agora tenho os valores de fato
+    NEXT_STATE.REGS[rd] = rs + rt;
+}
+// SUB
+void sub(uint32_t num){
+    uint32_t rd, rs, rt; // numero do registrador
+    rd = getRD(num);
+    rs = getRS(num);
+    rt = getRT(num);
+
+    // ate agora eu tenho o numero do registrador
+    // vamos pegar os valores desses registradores 
+    //rd = CURRENT_STATE.REGS[rd];
+    rs = CURRENT_STATE.REGS[rs];
+    rt = CURRENT_STATE.REGS[rt];
+    // agora tenho os valores de fato
+    if((rs - rt) < -2147483648){ // checa se vai dar overflow e joga a exception
+        printf("OVERFLOW EXCEPTION");
+    }else{
+        NEXT_STATE.REGS[rd] = rs - rt;
+    }
+}
+// SUBU
+void subu(uint32_t num){
+    uint32_t rd, rs, rt; // numero do registrador
+    rd = getRD(num);
+    rs = getRS(num);
+    rt = getRT(num);
+
+    // ate agora eu tenho o numero do registrador
+    // vamos pegar os valores desses registradores 
+    //rd = CURRENT_STATE.REGS[rd];
+    rs = CURRENT_STATE.REGS[rs];
+    rt = CURRENT_STATE.REGS[rt];
+    // agora tenho os valores de fato
+    NEXT_STATE.REGS[rd] = rs - rt;
+}
+// AND
+void and(uint32_t num){
+    uint32_t rd, rs, rt; // numero do registrador
+    rd = getRD(num);
+    rs = getRS(num);
+    rt = getRT(num);
+    
+
+    // ate agora eu tenho o numero do registrador
+    // vamos pegar os valores desses registradores 
+    //rd = CURRENT_STATE.REGS[rd];
+    rs = CURRENT_STATE.REGS[rs];
+    rt = CURRENT_STATE.REGS[rt];
+    // agora tenho os valores de fato
+    NEXT_STATE.REGS[rd] = rs & rt;
+}
+// OR
+void or(uint32_t num){
+    uint32_t rd, rs, rt; // numero do registrador
+    rd = getRD(num);
+    rs = getRS(num);
+    rt = getRT(num);
+
+    // ate agora eu tenho o numero do registrador
+    // vamos pegar os valores desses registradores 
+    //rd = CURRENT_STATE.REGS[rd];
+    rs = CURRENT_STATE.REGS[rs];
+    rt = CURRENT_STATE.REGS[rt];
+    // agora tenho os valores de fato
+    NEXT_STATE.REGS[rd] = rs | rt;
+}
+// XOR
+void xor(uint32_t num){
+    uint32_t rd, rs, rt; // numero do registrador
+    rd = getRD(num);
+    rs = getRS(num);
+    rt = getRT(num);
+
+    // ate agora eu tenho o numero do registrador
+    // vamos pegar os valores desses registradores 
+    //rd = CURRENT_STATE.REGS[rd];
+    rs = CURRENT_STATE.REGS[rs];
+    rt = CURRENT_STATE.REGS[rt];
+    // agora tenho os valores de fato
+    NEXT_STATE.REGS[rd] = rs ^ rt;
+}
+// NOR
+void nor(uint32_t num){
+    uint32_t rd, rs, rt; // numero do registrador
+    rd = getRD(num);
+    rs = getRS(num);
+    rt = getRT(num);
+
+    // ate agora eu tenho o numero do registrador
+    // vamos pegar os valores desses registradores
+    //rd = CURRENT_STATE.REGS[rd];
+    rs = CURRENT_STATE.REGS[rs];
+    rt = CURRENT_STATE.REGS[rt];
+    // agora tenho os valores de fato
+    NEXT_STATE.REGS[rd] = ~(rs | rt);
+}
+// SLT
+void slt(uint32_t num){
+    uint32_t rd, rs, rt; // numero do registrador
+    rd = getRD(num);
+    rs = getRS(num);
+    rt = getRT(num);
+
+    // ate agora eu tenho o numero do registrador
+    // vamos pegar os valores desses registradores
+    //rd = CURRENT_STATE.REGS[rd];
+    rs = CURRENT_STATE.REGS[rs];
+    rt = CURRENT_STATE.REGS[rt];
+    // agora tenho os valores de fato
+    if(rs < rt){
+        NEXT_STATE.REGS[rd] = 1;
+    }else{
+        NEXT_STATE.REGS[rd] = 0;
+    }
+    
+}
+// SLTU
+void sltu(uint32_t num){
+    uint32_t rd, rs, rt; // numero do registrador
+    rd = getRD(num);
+    rs = getRS(num);
+    rt = getRT(num);
+
+    // ate agora eu tenho o numero do registrador
+    // vamos pegar os valores desses registradores
+    //rd = CURRENT_STATE.REGS[rd];
+    rs = CURRENT_STATE.REGS[rs];
+    rt = CURRENT_STATE.REGS[rt];
+    // agora tenho os valores de fato
+    if(rs < rt){
+        NEXT_STATE.REGS[rd] = 1;
+    }else{
+        NEXT_STATE.REGS[rd] = 0;
+    }
+    
+}
+
+// MULT
+void mult(uint32_t num){
+    printf("!!!!!TEI!!!!!!\n");
+    uint32_t rs, rt, hi, lo; // numero do registrador
+    int64_t temp;
+    rs = getRS(num);
+    rt = getRT(num);
+
+    rs = CURRENT_STATE.REGS[rs];
+    rt = CURRENT_STATE.REGS[rt];
+    printf("%d\n", rs);
+    printf("%d\n", rt);
+
+    /*
+    temp = (int64_t)(int32_t)rs * (int64_t)(int32_t)rt;
+    hi = (uint32_t)((temp>>32) & 0xFFFFFFFF);
+    lo = (uint32_t)(temp & 0xFFFFFFFF);
+    */
+    temp = rs * rt;
+    printf("%ld\n", temp);
+    hi = (uint32_t)(temp>>32);
+    temp = temp << 32;
+    temp = temp >> 32;
+    lo = (uint32_t)temp;
+
+    NEXT_STATE.HI = hi;
+    NEXT_STATE.LO = lo;    
+}
+void multu(uint32_t num){
+    printf("!!!!!TEI!!!!!!\n");
+    uint32_t rs, rt, hi, lo; // numero do registrador
+    int64_t temp;
+    rs = getRS(num);
+    rt = getRT(num);
+
+    rs = CURRENT_STATE.REGS[rs];
+    rt = CURRENT_STATE.REGS[rt];
+    printf("%d\n", rs);
+    printf("%d\n", rt);
+
+    /*
+    temp = (int64_t)(int32_t)rs * (int64_t)(int32_t)rt;
+    hi = (uint32_t)((temp>>32) & 0xFFFFFFFF);
+    lo = (uint32_t)(temp & 0xFFFFFFFF);
+    */
+    temp = rs * rt;
+    printf("%ld\n", temp);
+    hi = (uint32_t)(temp>>32);
+    temp = temp << 32;
+    temp = temp >> 32;
+    lo = (uint32_t)temp;
+
+    NEXT_STATE.HI = hi;
+    NEXT_STATE.LO = lo;    
+}
+void mfhi(uint32_t hex){
+    uint32_t rd; // numero do registrador
+    rd = getRD(hex);
+    NEXT_STATE.REGS[rd] = CURRENT_STATE.HI;
+}
+void mflo(uint32_t hex){
+    uint32_t rd; // numero do registrador
+    rd = getRD(hex);
+    NEXT_STATE.REGS[rd] = CURRENT_STATE.LO;
+}
+void mthi(uint32_t hex){
+    uint32_t rs; // numero do registrador
+    rs = getRS(hex);
+    NEXT_STATE.HI = CURRENT_STATE.REGS[rs];
+}
+void mtlo(uint32_t hex){
+    uint32_t rs; // numero do registrador
+    rs = getRS(hex);
+    NEXT_STATE.LO = CURRENT_STATE.REGS[rs];
+}
+void div(uint32_t hex){
+    uint32_t rs, rt;
+    rs = getRS(hex);
+    rt = getRT(hex);
+
+    NEXT_STATE.HI = rs % rt;
+    NEXT_STATE.LO = rs / rt;
+}
+void divu(uint32_t hex){
+    uint32_t rs, rt;
+    rs = getRS(hex);
+    rt = getRT(hex);
+
+    NEXT_STATE.HI = rs % rt;
+    NEXT_STATE.LO = rs / rt;
 }
