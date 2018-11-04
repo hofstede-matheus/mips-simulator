@@ -30,6 +30,18 @@ void select_instruction(uint32_t hex){
     }else if(type == 1){
         printf("!!!!!TIPO i!!!!!!\n");
         switch(opcode){
+            case 4:
+                beq(hex);
+                break;
+            case 5:
+                bne(hex);
+                break;
+            case 6:
+                blez(hex);
+                break;
+            case 7:
+                bgtz(hex);
+                break;
             case 8:
                 addi(hex);
                 break;
@@ -187,7 +199,8 @@ uint32_t getIMMEDIATE(uint32_t num){
 
 // implementa syscall
 void SYSCALL(){
-    if(mem_read_32(CURRENT_STATE.REGS[2]) == 10){
+    printf("!!!!!FORA!!!!!! %d   \n", CURRENT_STATE.REGS[2]);
+    if(CURRENT_STATE.REGS[2] == 10){
         printf("!!!!!MASSA!!!!!!\n");
         RUN_BIT = 0;
     }
@@ -204,20 +217,23 @@ void j(uint32_t hex){
     uint32_t address;
     address = getADDRESS(hex);
     uint32_t msb_PC = CURRENT_STATE.PC;
-    msb_PC >> 28;
-    msb_PC << 28;
-    address << 2;
+    printf("1msb_PC!!!%x\n", msb_PC);
+    msb_PC = msb_PC >> 28;
+    msb_PC = msb_PC << 28;
+    address = address << 2;
+    printf("msb_PC!!!%x\n", msb_PC);
+    printf("address!!!%x\n", address);
     uint32_t t = address | msb_PC;
-    t+= 4;
+    //t+= 4;
     printf("!!!%x\n", t);
     printf("%x\n", mem_read_32(t));
-    //NEXT_STATE.PC = t;
+    NEXT_STATE.PC = t;
 
 }
 // JAL
 void jal(uint32_t hex){
-    uint32_t address;
-    address = getADDRESS(hex);
+    NEXT_STATE.REGS[31] = CURRENT_STATE.PC + 4;
+    j(hex);
 }
 
 /***************************************************************/
@@ -227,8 +243,57 @@ void jal(uint32_t hex){
 /*                                                             */
 /***************************************************************/
 
-// ADDI
+void beq(uint32_t num){
+    uint32_t imm, rs, rt; // numero do registrador
+    rs = getRS(num);
+    rt = getRT(num);
+    imm = getIMMEDIATE(num);
 
+    if(CURRENT_STATE.REGS[rs] == CURRENT_STATE.REGS[rt]){
+        NEXT_STATE.PC = NEXT_STATE.PC + (imm * 4) + 4;
+        printf("%x", NEXT_STATE.PC);
+    }
+}
+
+void bne(uint32_t num){
+    uint32_t imm, rs, rt; // numero do registrador
+    rs = getRS(num);
+    rt = getRT(num);
+    imm = getIMMEDIATE(num);
+
+    if(CURRENT_STATE.REGS[rs] != CURRENT_STATE.REGS[rt]){
+        NEXT_STATE.PC = NEXT_STATE.PC + (imm * 4) + 4;
+        printf("%x", NEXT_STATE.PC);
+    }
+}
+
+void blez(uint32_t num){
+    uint32_t imm, rs, rt; // numero do registrador
+    rs = getRS(num);
+    rt = getRT(num);
+    imm = getIMMEDIATE(num);
+
+    if(CURRENT_STATE.REGS[rs] <= 0){
+        NEXT_STATE.PC = NEXT_STATE.PC + (imm * 4) + 4;
+        printf("%x", NEXT_STATE.PC);
+    }
+}
+
+void bgtz(uint32_t num){
+    uint32_t imm, rs, rt; // numero do registrador
+    rs = getRS(num);
+    rt = getRT(num);
+    imm = getIMMEDIATE(num);
+
+    if(CURRENT_STATE.REGS[rs] > 0){
+        NEXT_STATE.PC = NEXT_STATE.PC + (imm * 4) + 4;
+        printf("%x", NEXT_STATE.PC);
+    }
+}
+
+
+
+// ADDI
 void addi(uint32_t num){
     uint32_t imm, rs, rt; // numero do registrador
     rs = getRS(num);
@@ -252,13 +317,19 @@ void addi(uint32_t num){
 void addiu(uint32_t num){
     uint32_t imm, rs, rt; // numero do registrador
     rs = getRS(num);
+    printf("%d\n", rs);
     rt = getRT(num);
+    printf("%d\n", rt);
     imm = getIMMEDIATE(num);
-
+    printf("%d\n", imm);
     //rd = CURRENT_STATE.REGS[rd];
     rs = CURRENT_STATE.REGS[rs];
+    printf("%d\n", rs);
     //rt = CURRENT_STATE.REGS[rt];
+    //mem_write_32()
     NEXT_STATE.REGS[rt] = rs + imm;
+    printf("%d kkkk", mem_read_32(CURRENT_STATE.REGS[rt]));
+    printf("%d kkkk", mem_read_32(NEXT_STATE.REGS[rt]));
 }
 
 

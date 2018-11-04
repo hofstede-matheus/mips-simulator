@@ -28,6 +28,11 @@ void jal(uint32_t hex);
 
 void addi(uint32_t num);
 void addiu(uint32_t num);
+void beq(uint32_t num);
+void bne(uint32_t num);
+void blez(uint32_t num);
+void bgtz(uint32_t num);
+
 
 
 void add(uint32_t hex);
