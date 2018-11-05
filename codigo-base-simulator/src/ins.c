@@ -291,6 +291,350 @@ void bgtz(uint32_t num){
     }
 }
 
+void slti(uint32_t num){
+    uint32_t imm, rs, rt; // numero do registrador
+    rs = getRS(num);
+    rt = getRT(num);
+    imm = getIMMEDIATE(num);
+
+    if(CURRENT_STATE.REGS[rs] < imm){
+        NEXT_STATE.REGS[rt] = 1;
+    }else{
+        NEXT_STATE.REGS[rt] = 0;
+    }
+}
+
+void sltiu(uint32_t num){
+    uint32_t imm, rs, rt; // numero do registrador
+    rs = getRS(num);
+    rt = getRT(num);
+    imm = getIMMEDIATE(num);
+
+    if(CURRENT_STATE.REGS[rs] < imm){
+        NEXT_STATE.REGS[rt] = 1;
+    }else{
+        NEXT_STATE.REGS[rt] = 0;
+    }
+}
+
+void andi(uint32_t num){
+    uint32_t imm, rs, rt; // numero do registrador
+    imm = getIMMEDIATE(num);
+    rs = getRS(num);
+    rt = getRT(num);
+    
+
+    // ate agora eu tenho o numero do registrador
+    // vamos pegar os valores desses registradores 
+    //rd = CURRENT_STATE.REGS[rd];
+    rs = CURRENT_STATE.REGS[rs];
+    //rt = CURRENT_STATE.REGS[rt];
+    // agora tenho os valores de fato
+    NEXT_STATE.REGS[rt] = rs & imm;
+}
+
+void ori(uint32_t num){
+    uint32_t imm, rs, rt; // numero do registrador
+    imm = getIMMEDIATE(num);
+    rs = getRS(num);
+    rt = getRT(num);
+
+    // ate agora eu tenho o numero do registrador
+    // vamos pegar os valores desses registradores 
+    //rd = CURRENT_STATE.REGS[rd];
+    rs = CURRENT_STATE.REGS[rs];
+    //rt = CURRENT_STATE.REGS[rt];
+    // agora tenho os valores de fato
+    NEXT_STATE.REGS[rt] = rs | imm;
+}
+// XOR
+void xor(uint32_t num){
+    uint32_t imm, rs, rt; // numero do registrador
+    imm = getIMMEDIATE(num);
+    rs = getRS(num);
+    rt = getRT(num);
+
+    // ate agora eu tenho o numero do registrador
+    // vamos pegar os valores desses registradores 
+    //rd = CURRENT_STATE.REGS[rd];
+    rs = CURRENT_STATE.REGS[rs];
+    //rt = CURRENT_STATE.REGS[rt];
+    // agora tenho os valores de fato
+    NEXT_STATE.REGS[rt] = rs ^ imm;
+}
+
+void lui(uint32_t num){
+    uint32_t imm, rt; // numero do registrador
+    imm = getIMMEDIATE(num);
+    //rs = getRS(num);
+    rt = getRT(num);
+
+    // ate agora eu tenho o numero do registrador
+    // vamos pegar os valores desses registradores 
+    //rd = CURRENT_STATE.REGS[rd];
+    //rs = CURRENT_STATE.REGS[rs];
+    //rt = CURRENT_STATE.REGS[rt];
+    // agora tenho os valores de fato
+    NEXT_STATE.REGS[rt] = imm << 16;
+}
+
+void lb(uint32_t num){
+    uint32_t imm, rs, rt; // numero do registrador
+    imm = getIMMEDIATE(num);
+    rs = getRS(num);
+    rt = getRT(num);
+
+    // ate agora eu tenho o numero do registrador
+    // vamos pegar os valores desses registradores 
+    //rd = CURRENT_STATE.REGS[rd];
+    rs = CURRENT_STATE.REGS[rs];
+    //rt = CURRENT_STATE.REGS[rt];
+    // agora tenho os valores de fato
+    
+    uint32_t t = mem_read_32(rs + imm);
+    t = t >> (32 - 8);
+    NEXT_STATE.REGS[rt] = t;
+}
+
+void lh(uint32_t num){
+    uint32_t imm, rs, rt; // numero do registrador
+    imm = getIMMEDIATE(num);
+    rs = getRS(num);
+    rt = getRT(num);
+
+    // ate agora eu tenho o numero do registrador
+    // vamos pegar os valores desses registradores 
+    //rd = CURRENT_STATE.REGS[rd];
+    rs = CURRENT_STATE.REGS[rs];
+    //rt = CURRENT_STATE.REGS[rt];
+    // agora tenho os valores de fato
+    
+    uint32_t t = mem_read_32(rs + imm);
+    t = t >> (32 - 16);
+    NEXT_STATE.REGS[rt] = t;
+}
+
+void lw(uint32_t num){
+    uint32_t imm, rs, rt; // numero do registrador
+    imm = getIMMEDIATE(num);
+    rs = getRS(num);
+    rt = getRT(num);
+
+    // ate agora eu tenho o numero do registrador
+    // vamos pegar os valores desses registradores 
+    //rd = CURRENT_STATE.REGS[rd];
+    rs = CURRENT_STATE.REGS[rs];
+    //rt = CURRENT_STATE.REGS[rt];
+    // agora tenho os valores de fato
+    
+    uint32_t t = mem_read_32(rs + imm);
+    NEXT_STATE.REGS[rt] = t;
+}
+
+void lbu(uint32_t num){
+    uint32_t imm, rs, rt; // numero do registrador
+    imm = getIMMEDIATE(num);
+    rs = getRS(num);
+    rt = getRT(num);
+
+    // ate agora eu tenho o numero do registrador
+    // vamos pegar os valores desses registradores 
+    //rd = CURRENT_STATE.REGS[rd];
+    rs = CURRENT_STATE.REGS[rs];
+    //rt = CURRENT_STATE.REGS[rt];
+    // agora tenho os valores de fato
+    
+    uint32_t t = mem_read_32(rs + imm);
+    t = t >> (32 - 8);
+    NEXT_STATE.REGS[rt] = t;
+}
+
+void lhu(uint32_t num){
+    uint32_t imm, rs, rt; // numero do registrador
+    imm = getIMMEDIATE(num);
+    rs = getRS(num);
+    rt = getRT(num);
+
+    // ate agora eu tenho o numero do registrador
+    // vamos pegar os valores desses registradores 
+    //rd = CURRENT_STATE.REGS[rd];
+    rs = CURRENT_STATE.REGS[rs];
+    //rt = CURRENT_STATE.REGS[rt];
+    // agora tenho os valores de fato
+    
+    uint32_t t = mem_read_32(rs + imm);
+    t = t >> (32 - 16);
+    NEXT_STATE.REGS[rt] = t;
+}
+
+void sb(uint32_t num){
+    uint32_t imm, rs, rt; // numero do registrador
+    imm = getIMMEDIATE(num);
+    rs = getRS(num);
+    rt = getRT(num);
+
+    // ate agora eu tenho o numero do registrador
+    // vamos pegar os valores desses registradores 
+    //rd = CURRENT_STATE.REGS[rd];
+    rs = CURRENT_STATE.REGS[rs];
+    rt = CURRENT_STATE.REGS[rt];
+    // agora tenho os valores de fato
+    
+    rt = rt >> (32 - 8);
+    mem_write_32(rs + imm, rt);
+}
+
+void sh(uint32_t num){
+    uint32_t imm, rs, rt; // numero do registrador
+    imm = getIMMEDIATE(num);
+    rs = getRS(num);
+    rt = getRT(num);
+
+    // ate agora eu tenho o numero do registrador
+    // vamos pegar os valores desses registradores 
+    //rd = CURRENT_STATE.REGS[rd];
+    rs = CURRENT_STATE.REGS[rs];
+    rt = CURRENT_STATE.REGS[rt];
+    // agora tenho os valores de fato
+    
+    rt = rt >> (32 - 16);
+    mem_write_32(rs + imm, rt);
+}
+
+void sw(uint32_t num){
+    uint32_t imm, rs, rt; // numero do registrador
+    imm = getIMMEDIATE(num);
+    rs = getRS(num);
+    rt = getRT(num);
+
+    // ate agora eu tenho o numero do registrador
+    // vamos pegar os valores desses registradores 
+    //rd = CURRENT_STATE.REGS[rd];
+    rs = CURRENT_STATE.REGS[rs];
+    rt = CURRENT_STATE.REGS[rt];
+    // agora tenho os valores de fato
+    
+    mem_write_32(rs + imm, rt);
+}
+
+void bltz(uint32_t num){
+    uint32_t imm, rs, rt; // numero do registrador
+    rs = getRS(num);
+    rt = getRT(num);
+    imm = getIMMEDIATE(num);
+
+    if(CURRENT_STATE.REGS[rs] < 0){
+        NEXT_STATE.PC = NEXT_STATE.PC + (imm * 4) + 4;
+        printf("%x", NEXT_STATE.PC);
+    }
+}
+
+void bgez(uint32_t num){
+    uint32_t imm, rs, rt; // numero do registrador
+    rs = getRS(num);
+    rt = getRT(num);
+    imm = getIMMEDIATE(num);
+
+    if(CURRENT_STATE.REGS[rs] >= 0){
+        NEXT_STATE.PC = NEXT_STATE.PC + (imm * 4) + 4;
+        printf("%x", NEXT_STATE.PC);
+    }
+}
+
+void bltzal(uint32_t num){
+    uint32_t imm, rs, rt; // numero do registrador
+    rs = getRS(num);
+    rt = getRT(num);
+    imm = getIMMEDIATE(num);
+
+    if(CURRENT_STATE.REGS[rs] < 0){
+        NEXT_STATE.REGS[31] = CURRENT_STATE.PC + 4;
+        NEXT_STATE.PC = NEXT_STATE.PC + (imm * 4) + 4;
+        printf("%x", NEXT_STATE.PC);
+    }
+}
+
+void bgezal(uint32_t num){
+    uint32_t imm, rs, rt; // numero do registrador
+    rs = getRS(num);
+    rt = getRT(num);
+    imm = getIMMEDIATE(num);
+
+    if(CURRENT_STATE.REGS[rs] >= 0){
+        NEXT_STATE.REGS[31] = CURRENT_STATE.PC + 4;
+        NEXT_STATE.PC = NEXT_STATE.PC + (imm * 4) + 4;
+        printf("%x", NEXT_STATE.PC);
+    }
+}
+
+void sll(uint32_t num){
+    uint32_t amm, rd, rt; // numero do registrador
+    rd = getRD(num);
+    rt = getRT(num);
+    amm = getSA(num);
+
+    rt = CURRENT_STATE.REGS[rt];
+
+    NEXT_STATE.REGS[rd] = rt << amm;
+}
+
+void srl(uint32_t num){
+    uint32_t amm, rd, rt; // numero do registrador
+    rd = getRD(num);
+    rt = getRT(num);
+    amm = getSA(num);
+
+    rt = CURRENT_STATE.REGS[rt];
+
+    NEXT_STATE.REGS[rd] = rt >> amm;
+}
+
+void sllv(uint32_t num){
+    uint32_t rs, rd, rt; // numero do registrador
+    rd = getRD(num);
+    rt = getRT(num);
+    rs = getRS(num);
+
+    rt = CURRENT_STATE.REGS[rt];
+    rs = CURRENT_STATE.REGS[rs];
+
+
+    NEXT_STATE.REGS[rd] = rt >> rs;
+}
+
+void srlv(uint32_t num){
+    uint32_t rs, rd, rt; // numero do registrador
+    rd = getRD(num);
+    rt = getRT(num);
+    rs = getRS(num);
+
+    rt = CURRENT_STATE.REGS[rt];
+    rs = CURRENT_STATE.REGS[rs];
+
+
+    NEXT_STATE.REGS[rd] = rt << rs;
+}
+
+void jr(uint32_t num){
+    uint32_t rs; // numero do registrador
+    rs = getRS(num);
+
+    rs = CURRENT_STATE.REGS[rs];
+
+    NEXT_STATE.PC = rs;
+}
+
+void jalr(uint32_t num){
+    uint32_t rs; // numero do registrador
+    rs = getRS(num);
+
+    rs = CURRENT_STATE.REGS[rs];
+    NEXT_STATE.REGS[31] = CURRENT_STATE.PC + 4;
+    NEXT_STATE.PC = rs;
+}
+
+
+
 
 
 // ADDI
