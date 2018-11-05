@@ -44,7 +44,6 @@ void process_instruction()
         printf("%x\n", getADDRESS(mem_read_32(CURRENT_STATE.PC)));
         //printf("%x\n", mem_read_32(getADDRESS(mem_read_32(CURRENT_STATE.PC))));
         //printf("%x\n", mem_read_32((uint32_t) 1048578 ));
-        select_instruction(mem_read_32(CURRENT_STATE.PC));
 
     }
     if(getType(getOPCODE(mem_read_32(CURRENT_STATE.PC))) == 1){
@@ -58,6 +57,7 @@ void process_instruction()
         printf("%x\n", mem_read_32(getIMMEDIATE(mem_read_32(CURRENT_STATE.PC))));
 
     }
+    select_instruction(mem_read_32(CURRENT_STATE.PC));
     printf("----------------------------------\n");
 
 
