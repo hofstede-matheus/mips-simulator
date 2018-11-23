@@ -197,6 +197,9 @@ void select_instruction(uint32_t hex){
             case 7:
                 srav(hex);
                 break;
+            case 12:
+                SYSCALL(hex);
+                break;
             case 24:
                 mult(hex);
                 break;
