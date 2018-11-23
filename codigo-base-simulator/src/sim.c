@@ -2,7 +2,9 @@
 #include "shell.h"
 //#include "ins.h" modularização
 
-void next_instruction();
+// ESCOPO DAS FUNÇÕES
+
+void next_instruction(); // PC+4
 
 void select_instruction(uint32_t hex);
 int getType(uint32_t num);
@@ -81,9 +83,6 @@ void srav(uint32_t hex);
 void process_instruction();
 
 
-
-
-
 // atualiza o PC
 void next_instruction(){
     NEXT_STATE.PC+= 4;
@@ -94,7 +93,6 @@ void select_instruction(uint32_t hex){
     uint32_t type, opcode, func;
     func = getFUNC(hex);
     opcode = getOPCODE(hex);
-
     type = getType(opcode);
 
     if(type == 0){
@@ -1125,31 +1123,11 @@ void srav(uint32_t num){
 }
 
 
-
-
-
-
-
-
-
 void process_instruction()
 {
-    //printf("%d\n", RUN_BIT);
-    //NEXT_STATE.PC = 000000;
-    
-    
-
-    //RUN_BIT = 0;
-    //u32 trimmed = value & 0x3F;
-    //printf("%b\n", trimmed);
-
-    //int k = 604110858 >> 26;
-    //k = k & 12;
-    //int k = 604110858 << 5;
-    //k = k >> 26;
     printf("----------------------------------\n");
-    printf("%x\n", CURRENT_STATE.PC);
-    printf("%x\n", mem_read_32(CURRENT_STATE.PC));
+    printf("PC ADDRESS: %x\n", CURRENT_STATE.PC);
+    printf("PC HEX: %x\n", mem_read_32(CURRENT_STATE.PC));
     printf("\n\n");
     printf("TYPE: ");
     printf("%u\n", getType(getOPCODE(mem_read_32(CURRENT_STATE.PC))));
