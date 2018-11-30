@@ -22,6 +22,7 @@ uint32_t getADDRESS(uint32_t num);
 uint32_t getIMMEDIATE(uint32_t num);
 
 
+
 void SYSCALL();
 
 void j(uint32_t hex);
@@ -55,7 +56,7 @@ void jr(uint32_t hex);
 void jalr(uint32_t hex);
 
 void add(uint32_t hex);
-void addu(uint32_t hex);
+void addu(int32_t hex);
 void sub(uint32_t hex);
 void subu(uint32_t hex);
 void and(uint32_t hex);
@@ -94,6 +95,8 @@ void select_instruction(uint32_t hex){
     func = getFUNC(hex);
     opcode = getOPCODE(hex);
     type = getType(opcode);
+
+
 
     if(type == 0){
         printf("!!!!!TIPO J!!!!!!\n");
@@ -196,6 +199,8 @@ void select_instruction(uint32_t hex){
                 break;
             case 7:
                 srav(hex);
+            case 8:
+                jr(hex);
                 break;
             case 12:
                 SYSCALL(hex);
@@ -250,9 +255,9 @@ int getType(uint32_t num){
 }
 // auxiliar pra identificar se é tipo I
 int getI(int code){
-    int opcodes[] = {4, 5, 8, 9, 12, 13, 15, 35, 42};
+    int opcodes[] = {1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 32, 33, 35, 36, 37, 40, 41, 43};
     int i;
-    for(i = 0; i < 9; i++){
+    for(i = 0; i < 21; i++){
         if(code == opcodes[i]) return 1;
     }
     return 0;
@@ -335,7 +340,6 @@ uint32_t getIMMEDIATE(uint32_t num){
 
 
 
-
 /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
 /*              IMPLEMENTAÇÃO DAS INSTRUÇÕES                    */
 /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
@@ -348,6 +352,7 @@ void SYSCALL(){
         printf("!!!!!MASSA!!!!!!\n");
         RUN_BIT = 0;
     }
+    next_instruction();
 }
 /***************************************************************/
 /*                                                             */
@@ -394,8 +399,11 @@ void beq(uint32_t num){
     imm = getIMMEDIATE(num);
 
     if(CURRENT_STATE.REGS[rs] == CURRENT_STATE.REGS[rt]){
-        NEXT_STATE.PC = NEXT_STATE.PC + (imm * 4) + 4;
-        printf("%x", NEXT_STATE.PC);
+        printf("CURRENT STATE: %x", NEXT_STATE.PC);
+        NEXT_STATE.PC = CURRENT_STATE.PC + (imm * 4) + 4;
+        printf("NEXT STATE:%x", NEXT_STATE.PC);
+    }else{
+        next_instruction();
     }
 }
 
@@ -408,6 +416,8 @@ void bne(uint32_t num){
     if(CURRENT_STATE.REGS[rs] != CURRENT_STATE.REGS[rt]){
         NEXT_STATE.PC = NEXT_STATE.PC + (imm * 4) + 4;
         printf("%x", NEXT_STATE.PC);
+    }else{
+        next_instruction();
     }
 }
 
@@ -418,20 +428,27 @@ void blez(uint32_t num){
     imm = getIMMEDIATE(num);
 
     if(CURRENT_STATE.REGS[rs] <= 0){
-        NEXT_STATE.PC = NEXT_STATE.PC + (imm * 4) + 4;
+        NEXT_STATE.PC = NEXT_STATE.PC + (imm << 2);
         printf("%x", NEXT_STATE.PC);
+    }else{
+        next_instruction();
     }
 }
 
 void bgtz(uint32_t num){
-    uint32_t imm, rs, rt; // numero do registrador
+    uint32_t rs, rt; // numero do registrador
+    int16_t imm;
     rs = getRS(num);
     rt = getRT(num);
-    imm = getIMMEDIATE(num);
+    printf("VRAU: %d", getIMMEDIATE(num));
+    imm = (int16_t) getIMMEDIATE(num);
+    printf("VRAU: %d", imm);
 
     if(CURRENT_STATE.REGS[rs] > 0){
         NEXT_STATE.PC = NEXT_STATE.PC + (imm * 4) + 4;
         printf("%x", NEXT_STATE.PC);
+    }else{
+        next_instruction();
     }
 }
 
@@ -446,6 +463,7 @@ void slti(uint32_t num){
     }else{
         NEXT_STATE.REGS[rt] = 0;
     }
+    next_instruction();
 }
 
 void sltiu(uint32_t num){
@@ -459,6 +477,7 @@ void sltiu(uint32_t num){
     }else{
         NEXT_STATE.REGS[rt] = 0;
     }
+    next_instruction();
 }
 
 void andi(uint32_t num){
@@ -475,6 +494,7 @@ void andi(uint32_t num){
     //rt = CURRENT_STATE.REGS[rt];
     // agora tenho os valores de fato
     NEXT_STATE.REGS[rt] = rs & imm;
+    next_instruction();
 }
 
 void ori(uint32_t num){
@@ -490,6 +510,7 @@ void ori(uint32_t num){
     //rt = CURRENT_STATE.REGS[rt];
     // agora tenho os valores de fato
     NEXT_STATE.REGS[rt] = rs | imm;
+    next_instruction();
 }
 // XOR
 void xori(uint32_t num){
@@ -505,6 +526,7 @@ void xori(uint32_t num){
     //rt = CURRENT_STATE.REGS[rt];
     // agora tenho os valores de fato
     NEXT_STATE.REGS[rt] = rs ^ imm;
+    next_instruction();
 }
 
 void lui(uint32_t num){
@@ -520,49 +542,95 @@ void lui(uint32_t num){
     //rt = CURRENT_STATE.REGS[rt];
     // agora tenho os valores de fato
     NEXT_STATE.REGS[rt] = imm << 16;
+    next_instruction();
 }
 
 void lb(uint32_t num){
-    uint32_t imm, rs, rt; // numero do registrador
-    imm = getIMMEDIATE(num);
-    rs = getRS(num);
-    rt = getRT(num);
+    int32_t rs, rt; // numero do registrador
+    int imm;
+    rs = (int32_t) getRS(num);
+    printf("%d\n", rs);
+    rt = (int32_t) getRT(num);
+    printf("%d\n", rt);
+    imm = (int16_t) getIMMEDIATE(num);
+    printf("crab%d\n", imm);
+    //rd = CURRENT_STATE.REGS[rd];
+    rs = (int32_t) CURRENT_STATE.REGS[rs];
+    printf("%d\n", rs);
+    //rt = CURRENT_STATE.REGS[rt];
+    //mem_write_32()
+    int8_t byte = 
+    NEXT_STATE.REGS[rt] = (int32_t) ((signed)rs + (signed)imm);
+    printf("%d kkkk!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", mem_read_32(CURRENT_STATE.REGS[rt]));
+    printf("%d kkkk\n", mem_read_32(NEXT_STATE.REGS[rt]));
+
 
     // ate agora eu tenho o numero do registrador
     // vamos pegar os valores desses registradores 
     //rd = CURRENT_STATE.REGS[rd];
-    rs = CURRENT_STATE.REGS[rs];
     //rt = CURRENT_STATE.REGS[rt];
     // agora tenho os valores de fato
-    
-    uint32_t t = mem_read_32(rs + imm);
+    printf("%x ::RS ADABRA:\n", rs);
+    printf("%x ::IMM: 32 bits\n", imm);
+    uint32_t t = (rs + imm);
+    printf("%x ::ADDRESSDABRA: 32 bits\n", t);
+    printf("%d ::ADDRESSDABRA: INT \n", t);
+    t = mem_read_32(t);
+    printf("%x ::Value: 32 bits\n", t);
+    t = t << (32 - 8);
     t = t >> (32 - 8);
+    t = (int8_t) t;
+    printf("%x ::ADABRA 4 bits:\n", t);
     NEXT_STATE.REGS[rt] = t;
+    next_instruction();
 }
 
 void lh(uint32_t num){
-    uint32_t imm, rs, rt; // numero do registrador
-    imm = getIMMEDIATE(num);
-    rs = getRS(num);
-    rt = getRT(num);
+    int32_t rs, rt; // numero do registrador
+    int imm;
+    rs = (int32_t) getRS(num);
+    printf("%d\n", rs);
+    rt = (int32_t) getRT(num);
+    printf("%d\n", rt);
+    imm = (int16_t) getIMMEDIATE(num);
+    printf("crab%d\n", imm);
+    //rd = CURRENT_STATE.REGS[rd];
+    rs = (int32_t) CURRENT_STATE.REGS[rs];
+    printf("%d\n", rs);
+    //rt = CURRENT_STATE.REGS[rt];
+    //mem_write_32()
+    NEXT_STATE.REGS[rt] = (int32_t) ((signed)rs + (signed)imm);
+    printf("%d kkkk!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", mem_read_32(CURRENT_STATE.REGS[rt]));
+    printf("%d kkkk\n", mem_read_32(NEXT_STATE.REGS[rt]));
+
 
     // ate agora eu tenho o numero do registrador
     // vamos pegar os valores desses registradores 
     //rd = CURRENT_STATE.REGS[rd];
-    rs = CURRENT_STATE.REGS[rs];
     //rt = CURRENT_STATE.REGS[rt];
     // agora tenho os valores de fato
-    
-    uint32_t t = mem_read_32(rs + imm);
+    printf("%x ::RS ADABRA:\n", rs);
+    printf("%x ::IMM: 32 bits\n", imm);
+    uint32_t t = (rs + imm);
+    printf("%x ::ADDRESSDABRA: 32 bits\n", t);
+    printf("%d ::ADDRESSDABRA: INT \n", t);
+    t = mem_read_32(t);
+    printf("%x ::Value: 32 bits\n", t);
+    t = t << (32 - 16);
     t = t >> (32 - 16);
+    t = (int16_t) t;
+    printf("%x ::ADABRA 4 bits:\n", t);
     NEXT_STATE.REGS[rt] = t;
+    next_instruction();
 }
 
 void lw(uint32_t num){
-    uint32_t imm, rs, rt; // numero do registrador
-    imm = getIMMEDIATE(num);
+    uint32_t rs, rt; // numero do registrador
+    int imm;
     rs = getRS(num);
     rt = getRT(num);
+    imm = (int16_t) getIMMEDIATE(num);
+
 
     // ate agora eu tenho o numero do registrador
     // vamos pegar os valores desses registradores 
@@ -571,47 +639,89 @@ void lw(uint32_t num){
     //rt = CURRENT_STATE.REGS[rt];
     // agora tenho os valores de fato
     
-    uint32_t t = mem_read_32(rs + imm);
+    uint32_t t = mem_read_32(rs + (int)imm);
     NEXT_STATE.REGS[rt] = t;
+    next_instruction();
 }
 
 void lbu(uint32_t num){
-    uint32_t imm, rs, rt; // numero do registrador
-    imm = getIMMEDIATE(num);
-    rs = getRS(num);
-    rt = getRT(num);
+    int32_t rs, rt; // numero do registrador
+    int imm;
+    rs = (int32_t) getRS(num);
+    printf("%d\n", rs);
+    rt = (int32_t) getRT(num);
+    printf("%d\n", rt);
+    imm = (int16_t) getIMMEDIATE(num);
+    printf("crab%d\n", imm);
+    //rd = CURRENT_STATE.REGS[rd];
+    rs = (int32_t) CURRENT_STATE.REGS[rs];
+    printf("%d\n", rs);
+    //rt = CURRENT_STATE.REGS[rt];
+    //mem_write_32()
+    NEXT_STATE.REGS[rt] = (int32_t) ((signed)rs + (signed)imm);
+    printf("%d kkkk!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", mem_read_32(CURRENT_STATE.REGS[rt]));
+    printf("%d kkkk\n", mem_read_32(NEXT_STATE.REGS[rt]));
+
 
     // ate agora eu tenho o numero do registrador
     // vamos pegar os valores desses registradores 
     //rd = CURRENT_STATE.REGS[rd];
-    rs = CURRENT_STATE.REGS[rs];
     //rt = CURRENT_STATE.REGS[rt];
     // agora tenho os valores de fato
-    
-    uint32_t t = mem_read_32(rs + imm);
+    printf("%x ::RS ADABRA:\n", rs);
+    printf("%x ::IMM: 32 bits\n", imm);
+    uint32_t t = (rs + imm);
+    printf("%x ::ADDRESSDABRA: 32 bits\n", t);
+    printf("%d ::ADDRESSDABRA: INT \n", t);
+    t = mem_read_32(t);
+    printf("%x ::Value: 32 bits\n", t);
+    t = t << (32 - 8);
     t = t >> (32 - 8);
+    printf("%x ::ADABRA 4 bits:\n", t);
     NEXT_STATE.REGS[rt] = t;
+    next_instruction();
 }
 
 void lhu(uint32_t num){
-    uint32_t imm, rs, rt; // numero do registrador
-    imm = getIMMEDIATE(num);
-    rs = getRS(num);
-    rt = getRT(num);
+    int32_t rs, rt; // numero do registrador
+    int imm;
+    rs = (int32_t) getRS(num);
+    printf("%d\n", rs);
+    rt = (int32_t) getRT(num);
+    printf("%d\n", rt);
+    imm = (int16_t) getIMMEDIATE(num);
+    printf("crab%d\n", imm);
+    //rd = CURRENT_STATE.REGS[rd];
+    rs = (int32_t) CURRENT_STATE.REGS[rs];
+    printf("%d\n", rs);
+    //rt = CURRENT_STATE.REGS[rt];
+    //mem_write_32()
+    NEXT_STATE.REGS[rt] = (int32_t) ((signed)rs + (signed)imm);
+    printf("%d kkkk!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!", mem_read_32(CURRENT_STATE.REGS[rt]));
+    printf("%d kkkk\n", mem_read_32(NEXT_STATE.REGS[rt]));
+
 
     // ate agora eu tenho o numero do registrador
     // vamos pegar os valores desses registradores 
     //rd = CURRENT_STATE.REGS[rd];
-    rs = CURRENT_STATE.REGS[rs];
     //rt = CURRENT_STATE.REGS[rt];
     // agora tenho os valores de fato
-    
-    uint32_t t = mem_read_32(rs + imm);
+    printf("%x ::RS ADABRA:\n", rs);
+    printf("%x ::IMM: 32 bits\n", imm);
+    uint32_t t = (rs + imm);
+    printf("%x ::ADDRESSDABRA: 32 bits\n", t);
+    printf("%d ::ADDRESSDABRA: INT \n", t);
+    t = mem_read_32(t);
+    printf("%x ::Value: 32 bits\n", t);
+    t = t << (32 - 16);
     t = t >> (32 - 16);
+    printf("%x ::ADABRA 4 bits:\n", t);
     NEXT_STATE.REGS[rt] = t;
+    next_instruction();
 }
 
 void sb(uint32_t num){
+    printf("SB!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
     uint32_t imm, rs, rt; // numero do registrador
     imm = getIMMEDIATE(num);
     rs = getRS(num);
@@ -622,13 +732,23 @@ void sb(uint32_t num){
     //rd = CURRENT_STATE.REGS[rd];
     rs = CURRENT_STATE.REGS[rs];
     rt = CURRENT_STATE.REGS[rt];
-    // agora tenho os valores de fato
-    
+    printf("RT: %x\n", rt);
+    rt = rt << (32 - 8);
     rt = rt >> (32 - 8);
+    printf("RT shifted (4bits): %x\n", rt);
+
+
+    // agora tenho os valores de fato
+
+    // address
+    
+    
     mem_write_32(rs + imm, rt);
+    next_instruction();
 }
 
 void sh(uint32_t num){
+    printf("SB!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
     uint32_t imm, rs, rt; // numero do registrador
     imm = getIMMEDIATE(num);
     rs = getRS(num);
@@ -639,10 +759,19 @@ void sh(uint32_t num){
     //rd = CURRENT_STATE.REGS[rd];
     rs = CURRENT_STATE.REGS[rs];
     rt = CURRENT_STATE.REGS[rt];
-    // agora tenho os valores de fato
-    
+    printf("RT: %x\n", rt);
+    rt = rt << (32 - 16);
     rt = rt >> (32 - 16);
+    printf("RT shifted (4bits): %x\n", rt);
+
+
+    // agora tenho os valores de fato
+
+    // address
+    
+    
     mem_write_32(rs + imm, rt);
+    next_instruction();
 }
 
 void sw(uint32_t num){
@@ -659,6 +788,7 @@ void sw(uint32_t num){
     // agora tenho os valores de fato
     
     mem_write_32(rs + imm, rt);
+    next_instruction();
 }
 
 void bltz(uint32_t num){
@@ -670,44 +800,60 @@ void bltz(uint32_t num){
     if(CURRENT_STATE.REGS[rs] < 0){
         NEXT_STATE.PC = NEXT_STATE.PC + (imm * 4) + 4;
         printf("%x", NEXT_STATE.PC);
+    }else{
+        next_instruction();
     }
 }
 
 void bgez(uint32_t num){
-    uint32_t imm, rs, rt; // numero do registrador
+    uint32_t rs, rt; // numero do registrador
+    int16_t imm;
     rs = getRS(num);
     rt = getRT(num);
+    printf("VRAU: %d", getIMMEDIATE(num));
     imm = getIMMEDIATE(num);
+    printf("VRAU: %d", imm);
 
     if(CURRENT_STATE.REGS[rs] >= 0){
         NEXT_STATE.PC = NEXT_STATE.PC + (imm * 4) + 4;
         printf("%x", NEXT_STATE.PC);
+    }else{
+        next_instruction();
     }
 }
 
 void bltzal(uint32_t num){
-    uint32_t imm, rs, rt; // numero do registrador
+    uint32_t rs, rt; // numero do registrador
+    int imm;
     rs = getRS(num);
     rt = getRT(num);
-    imm = getIMMEDIATE(num);
+    imm = (int16_t) getIMMEDIATE(num);
 
-    if(CURRENT_STATE.REGS[rs] < 0){
+    printf("corovis%d\n", CURRENT_STATE.REGS[rs]);
+    printf("%d\n", NEXT_STATE.PC);
+    if((int) CURRENT_STATE.REGS[rs] < 0){
+        
         NEXT_STATE.REGS[31] = CURRENT_STATE.PC + 4;
-        NEXT_STATE.PC = NEXT_STATE.PC + (imm * 4) + 4;
-        printf("%x", NEXT_STATE.PC);
+        NEXT_STATE.PC = CURRENT_STATE.PC + (imm * 4) + 4;
+        printf("%x\n", NEXT_STATE.PC);
+    }else{
+        next_instruction();
     }
 }
 
 void bgezal(uint32_t num){
-    uint32_t imm, rs, rt; // numero do registrador
+    uint32_t rs, rt; // numero do registrador
+    int imm;
     rs = getRS(num);
     rt = getRT(num);
-    imm = getIMMEDIATE(num);
+    imm = (int16_t) getIMMEDIATE(num);
 
-    if(CURRENT_STATE.REGS[rs] >= 0){
+    if((int)CURRENT_STATE.REGS[rs] >= 0){
         NEXT_STATE.REGS[31] = CURRENT_STATE.PC + 4;
         NEXT_STATE.PC = NEXT_STATE.PC + (imm * 4) + 4;
         printf("%x", NEXT_STATE.PC);
+    }else{
+        next_instruction();
     }
 }
 
@@ -717,6 +863,7 @@ void jr(uint32_t num){
     rs = getRS(num);
 
     rs = CURRENT_STATE.REGS[rs];
+    printf("JR:%x\n", rs);
 
     NEXT_STATE.PC = rs;
 }
@@ -734,10 +881,11 @@ void jalr(uint32_t num){
 
 // ADDI
 void addi(uint32_t num){
-    uint32_t imm, rs, rt; // numero do registrador
+    uint32_t rs, rt; // numero do registrador
+    int imm;
     rs = getRS(num);
     rt = getRT(num);
-    imm = getIMMEDIATE(num);
+    imm = (int16_t) getIMMEDIATE(num);
     
 
     // ate agora eu tenho o numero do registrador
@@ -751,24 +899,27 @@ void addi(uint32_t num){
     }else{
         NEXT_STATE.REGS[rt] = rs + imm;
     }
+    next_instruction();
 }
 // ADDIU
 void addiu(uint32_t num){
-    uint32_t imm, rs, rt; // numero do registrador
-    rs = getRS(num);
+    int32_t rs, rt; // numero do registrador
+    int imm;
+    rs = (int32_t) getRS(num);
     printf("%d\n", rs);
-    rt = getRT(num);
+    rt = (int32_t) getRT(num);
     printf("%d\n", rt);
-    imm = getIMMEDIATE(num);
-    printf("%d\n", imm);
+    imm = (int16_t) getIMMEDIATE(num);
+    printf("crab%d\n", imm);
     //rd = CURRENT_STATE.REGS[rd];
-    rs = CURRENT_STATE.REGS[rs];
+    rs = (int32_t) CURRENT_STATE.REGS[rs];
     printf("%d\n", rs);
     //rt = CURRENT_STATE.REGS[rt];
     //mem_write_32()
-    NEXT_STATE.REGS[rt] = rs + imm;
+    NEXT_STATE.REGS[rt] = (int32_t) ((signed)rs + (signed)imm);
     printf("%d kkkk", mem_read_32(CURRENT_STATE.REGS[rt]));
     printf("%d kkkk", mem_read_32(NEXT_STATE.REGS[rt]));
+    next_instruction();
 }
 
 
@@ -798,21 +949,24 @@ void add(uint32_t num){
     }else{
         NEXT_STATE.REGS[rd] = rs + rt;
     }
+    next_instruction();
 }
 // ADDU
-void addu(uint32_t num){
-    uint32_t rd, rs, rt; // numero do registrador
-    rd = getRD(num);
-    rs = getRS(num);
-    rt = getRT(num);
+void addu(int32_t num){
+    int32_t rd, rs, rt; // numero do registrador
+    rd = (int32_t) getRD(num);
+    rs = (int32_t) getRS(num);
+    rt = (int32_t) getRT(num);
 
     // ate agora eu tenho o numero do registrador
     // vamos pegar os valores desses registradores 
     //rd = CURRENT_STATE.REGS[rd];
     rs = CURRENT_STATE.REGS[rs];
     rt = CURRENT_STATE.REGS[rt];
+    printf("%i::::::::::%i", rs, rt);
     // agora tenho os valores de fato
-    NEXT_STATE.REGS[rd] = rs + rt;
+    NEXT_STATE.REGS[rd] = (int32_t) (rs + rt);
+    next_instruction();
 }
 // SUB
 void sub(uint32_t num){
@@ -832,6 +986,7 @@ void sub(uint32_t num){
     }else{
         NEXT_STATE.REGS[rd] = rs - rt;
     }
+    next_instruction();
 }
 // SUBU
 void subu(uint32_t num){
@@ -847,6 +1002,7 @@ void subu(uint32_t num){
     rt = CURRENT_STATE.REGS[rt];
     // agora tenho os valores de fato
     NEXT_STATE.REGS[rd] = rs - rt;
+    next_instruction();
 }
 // AND
 void and(uint32_t num){
@@ -863,6 +1019,7 @@ void and(uint32_t num){
     rt = CURRENT_STATE.REGS[rt];
     // agora tenho os valores de fato
     NEXT_STATE.REGS[rd] = rs & rt;
+    next_instruction();
 }
 // OR
 void or(uint32_t num){
@@ -878,6 +1035,7 @@ void or(uint32_t num){
     rt = CURRENT_STATE.REGS[rt];
     // agora tenho os valores de fato
     NEXT_STATE.REGS[rd] = rs | rt;
+    next_instruction();
 }
 // XOR
 void xor(uint32_t num){
@@ -893,6 +1051,7 @@ void xor(uint32_t num){
     rt = CURRENT_STATE.REGS[rt];
     // agora tenho os valores de fato
     NEXT_STATE.REGS[rd] = rs ^ rt;
+    next_instruction();
 }
 // NOR
 void nor(uint32_t num){
@@ -908,6 +1067,7 @@ void nor(uint32_t num){
     rt = CURRENT_STATE.REGS[rt];
     // agora tenho os valores de fato
     NEXT_STATE.REGS[rd] = ~(rs | rt);
+    next_instruction();
 }
 // SLT
 void slt(uint32_t num){
@@ -927,7 +1087,7 @@ void slt(uint32_t num){
     }else{
         NEXT_STATE.REGS[rd] = 0;
     }
-    
+    next_instruction();
 }
 // SLTU
 void sltu(uint32_t num){
@@ -947,7 +1107,7 @@ void sltu(uint32_t num){
     }else{
         NEXT_STATE.REGS[rd] = 0;
     }
-    
+    next_instruction();
 }
 
 // MULT
@@ -976,7 +1136,8 @@ void mult(uint32_t num){
     lo = (uint32_t)temp;
 
     NEXT_STATE.HI = hi;
-    NEXT_STATE.LO = lo;    
+    NEXT_STATE.LO = lo;
+    next_instruction(); 
 }
 void multu(uint32_t num){
     printf("!!!!!TEI!!!!!!\n");
@@ -1003,27 +1164,32 @@ void multu(uint32_t num){
     lo = (uint32_t)temp;
 
     NEXT_STATE.HI = hi;
-    NEXT_STATE.LO = lo;    
+    NEXT_STATE.LO = lo;
+    next_instruction();
 }
 void mfhi(uint32_t hex){
     uint32_t rd; // numero do registrador
     rd = getRD(hex);
     NEXT_STATE.REGS[rd] = CURRENT_STATE.HI;
+    next_instruction();
 }
 void mflo(uint32_t hex){
     uint32_t rd; // numero do registrador
     rd = getRD(hex);
     NEXT_STATE.REGS[rd] = CURRENT_STATE.LO;
+    next_instruction();
 }
 void mthi(uint32_t hex){
     uint32_t rs; // numero do registrador
     rs = getRS(hex);
     NEXT_STATE.HI = CURRENT_STATE.REGS[rs];
+    next_instruction();
 }
 void mtlo(uint32_t hex){
     uint32_t rs; // numero do registrador
     rs = getRS(hex);
     NEXT_STATE.LO = CURRENT_STATE.REGS[rs];
+    next_instruction();
 }
 void div(uint32_t hex){
     uint32_t rs, rt;
@@ -1032,6 +1198,7 @@ void div(uint32_t hex){
 
     NEXT_STATE.HI = rs % rt;
     NEXT_STATE.LO = rs / rt;
+    next_instruction();
 }
 void divu(uint32_t hex){
     uint32_t rs, rt;
@@ -1040,6 +1207,7 @@ void divu(uint32_t hex){
 
     NEXT_STATE.HI = rs % rt;
     NEXT_STATE.LO = rs / rt;
+    next_instruction();
 }
 
 void sll(uint32_t num){
@@ -1051,6 +1219,7 @@ void sll(uint32_t num){
     rt = CURRENT_STATE.REGS[rt];
 
     NEXT_STATE.REGS[rd] = rt << amm;
+    next_instruction();
 }
 
 void srl(uint32_t num){
@@ -1062,6 +1231,7 @@ void srl(uint32_t num){
     rt = CURRENT_STATE.REGS[rt];
 
     NEXT_STATE.REGS[rd] = rt >> amm;
+    next_instruction();
 }
 
 void sra(uint32_t num){
@@ -1079,6 +1249,7 @@ void sra(uint32_t num){
 
     rt = (rt >> amm) | signal;
     NEXT_STATE.REGS[rd] = rt;
+    next_instruction();
 }
 
 void sllv(uint32_t num){
@@ -1092,6 +1263,7 @@ void sllv(uint32_t num){
 
 
     NEXT_STATE.REGS[rd] = rt >> rs;
+    next_instruction();
 }
 
 void srlv(uint32_t num){
@@ -1105,6 +1277,7 @@ void srlv(uint32_t num){
 
 
     NEXT_STATE.REGS[rd] = rt << rs;
+    next_instruction();
 }
 
 void srav(uint32_t num){
@@ -1123,6 +1296,7 @@ void srav(uint32_t num){
 
     rt = (rt >> rs) | signal;
     NEXT_STATE.REGS[rd] = rt;
+    next_instruction();
 }
 
 
@@ -1139,11 +1313,11 @@ void process_instruction()
     if(getType(getOPCODE(mem_read_32(CURRENT_STATE.PC))) == 2){
         printf("é tipo R: \n");
         printf("RS: ");
-        printf("%u\n", getRS(mem_read_32(CURRENT_STATE.PC)));
+        printf("%u (%d)\n", getRS(mem_read_32(CURRENT_STATE.PC)), CURRENT_STATE.REGS[getRS(mem_read_32(CURRENT_STATE.PC))]);
         printf("RT: ");
-        printf("%u\n", getRT(mem_read_32(CURRENT_STATE.PC)));
+        printf("%u (%d)\n", getRT(mem_read_32(CURRENT_STATE.PC)), CURRENT_STATE.REGS[getRT(mem_read_32(CURRENT_STATE.PC))]);
         printf("RD: ");
-        printf("%u\n", getRD(mem_read_32(CURRENT_STATE.PC)));
+        printf("%u (%d)\n", getRD(mem_read_32(CURRENT_STATE.PC)), CURRENT_STATE.REGS[getRD(mem_read_32(CURRENT_STATE.PC))]);
         printf("SA: ");
         printf("%u\n", getSA(mem_read_32(CURRENT_STATE.PC)));
         printf("FUNC: ");
@@ -1160,9 +1334,9 @@ void process_instruction()
     if(getType(getOPCODE(mem_read_32(CURRENT_STATE.PC))) == 1){
         printf("é tipo I: \n");
         printf("RS: ");
-        printf("%u\n", getRS(mem_read_32(CURRENT_STATE.PC)));
+        printf("%u (%d)\n", getRS(mem_read_32(CURRENT_STATE.PC)), CURRENT_STATE.REGS[getRS(mem_read_32(CURRENT_STATE.PC))]);
         printf("RT: ");
-        printf("%u\n", getRT(mem_read_32(CURRENT_STATE.PC)));
+        printf("%u (%d)\n", getRT(mem_read_32(CURRENT_STATE.PC)), CURRENT_STATE.REGS[getRT(mem_read_32(CURRENT_STATE.PC))]);
         printf("IMMEDIATE: ");
         printf("%u\n", getIMMEDIATE(mem_read_32(CURRENT_STATE.PC)));
         printf("%x\n", mem_read_32(getIMMEDIATE(mem_read_32(CURRENT_STATE.PC))));
@@ -1171,7 +1345,6 @@ void process_instruction()
     select_instruction(mem_read_32(CURRENT_STATE.PC));
     printf("----------------------------------\n");
 
-    next_instruction();
 
 
     /* execute one instruction here. You should use CURRENT_STATE and modify

@@ -6,8 +6,6 @@
 main:   
         addiu   $2, $zero, 1024
         addu    $3, $2, $2
-        mult    $2, $3
-        mult    $2, $zero
         or      $4, $3, $2
         add     $5, $zero, 1234
         sll     $6, $5, 16
@@ -21,6 +19,7 @@ main:
         andi    $14, $4, 100
         sub     $15, $zero, $10
         lui     $17, 100
+        mult    $2, $3
         addiu   $v0, $zero, 0xa
         syscall
         

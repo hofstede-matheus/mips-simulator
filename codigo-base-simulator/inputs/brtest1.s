@@ -9,6 +9,7 @@ main:
         # Set up some comparison values in registers
         addiu $3, $zero, 1
         addiu $4, $zero, -1
+        addu  $5, $3, $4
 
         # Checksum register
         addiu $5, $zero, 0x1234
